@@ -19,11 +19,11 @@ export interface UserTypeCreate extends UserTypeBase {
 
 export interface UserTypeUpdate extends UserTypeBase {
   id: number
-  is_staff?: boolean
-  is_superuser?: boolean
-  first_name?: string
-  last_name?: string
-  is_active?: boolean
+  is_staff: boolean
+  is_superuser: boolean
+  first_name: string
+  last_name: string
+  is_active: boolean
 }
 
 export interface UserTypeUpdatePassword extends UserTypeBase {
