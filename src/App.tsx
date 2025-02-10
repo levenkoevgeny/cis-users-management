@@ -10,7 +10,14 @@ const router = createBrowserRouter([
   {
     path: "/",
     Component: Layout,
-    children: [{ path: "/users", Component: UsersList }],
+    children: [
+      {
+        path: "/users",
+        index: true,
+        Component: UsersList,
+        loader: protectedLoader,
+      },
+    ],
   },
   { path: "/login", Component: LoginPage },
 ])
@@ -19,8 +26,6 @@ async function protectedLoader({ request }: { request: any }) {
   await store.dispatch(checkLoggedIn())
   const state = store.getState()
   const isLoggedIn = state.auth.isLoggedIn
-
-  console.log("isLoggedIn", isLoggedIn)
 
   if (!isLoggedIn) {
     let params = new URLSearchParams()

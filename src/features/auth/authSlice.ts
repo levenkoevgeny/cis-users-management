@@ -121,4 +121,6 @@ export const {
 export const isLoggedIn = (state: RootState) => state.auth.isLoggedIn
 export const isAuthLoading = (state: RootState) => state.auth.isLoading
 export const authUser = (state: RootState) => state.auth.user
+export const isLogInError = (state: RootState) => state.auth.isLogInError
+export const authToken = (state: RootState) => state.auth.token
 export default authSlice.reducer

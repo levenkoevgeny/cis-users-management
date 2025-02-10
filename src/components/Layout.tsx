@@ -1,6 +1,14 @@
-import { Outlet } from "react-router"
+import { Navigate, Outlet } from "react-router"
+import { useAppDispatch } from "../app/hooks"
+import { removeLoggedIn } from "../features/auth/authSlice"
+import { useNavigate } from "react-router"
 
 function Navbar() {
+  let navigate = useNavigate()
+  const dispatch = useAppDispatch()
+  function logOut() {
+    dispatch(removeLoggedIn()).then(() => navigate("/login"))
+  }
   return (
     <nav className="navbar navbar-expand-lg bg-body-tertiary">
       <div className="container-fluid">
@@ -27,6 +35,14 @@ function Navbar() {
             </li>
           </ul>
         </div>
+        <div>
+          <button
+            onClick={logOut}
+            className="btn btn-link link-secondary link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover"
+          >
+            Выход из системы
+          </button>
+        </div>
       </div>
     </nav>
   )
@@ -36,6 +52,7 @@ export default function Layout() {
   return (
     <div>
       <Navbar />
+      <Navigate to="/users" replace={true} />
       <div className="container">
         <Outlet />
       </div>
