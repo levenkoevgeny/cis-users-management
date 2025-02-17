@@ -41,9 +41,8 @@ export const checkLoggedIn = createAsyncThunk<void, void, { state: RootState }>(
             dispatch(userDataChange(userData))
             dispatch(userIsLoggedChange(true))
           } catch (error) {
-            removeLocalToken()
-            dispatch(userTokenChange(null))
-            dispatch(userIsLoggedChange(null))
+            console.log("error", error)
+            dispatch(removeLoggedIn())
           }
         }
       }
@@ -57,6 +56,7 @@ export const removeLoggedIn = createAsyncThunk(
     removeLocalToken()
     dispatch(userTokenChange(null))
     dispatch(userIsLoggedChange(null))
+    dispatch(userDataChange({}))
   },
 )
 

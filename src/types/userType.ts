@@ -29,3 +29,8 @@ export interface UserTypeUpdate extends UserTypeBase {
 export interface UserTypeUpdatePassword extends UserTypeBase {
   password: string
 }
+
+export interface userSearchForm {
+  username: string
+  last_name: string
+}

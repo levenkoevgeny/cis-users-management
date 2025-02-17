@@ -1,5 +1,12 @@
 import axios from "axios"
-import { authHeaders } from "./userAPI"
+
+export function authHeaders(token: string) {
+  return {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+}
 
 export const authAPI = {
   async logInGetToken(username: string, password: string) {

@@ -1,20 +1,12 @@
-import axios from "axios"
-import { UserTypeCreate } from "../types/userType"
-
-export function authHeaders(token: string) {
-  return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  }
-}
+import { axiosInstance as axios } from "../index"
+import { UserTypeCreate, userSearchForm } from "../types/userType"
 
 class userAPI {
   baseURL: string
   searchObj: object
   searchObjDefault: object
   formData: object
-  constructor(baseUrl: string, searchForm: object, formData: object) {
+  constructor(baseUrl: string, searchForm: userSearchForm, formData: object) {
     this.baseURL = baseUrl
     this.searchObj = searchForm
     this.searchObjDefault = Object.assign({}, searchForm)
@@ -29,22 +21,20 @@ class userAPI {
     return queryString
   }
 
-  async getItemsList(token: string) {
+  async getItemsList() {
     let query = this.getQueryStringFromSearchObj()
     return axios.get(
       `${process.env.REACT_APP_BACKEND_PROTOCOL}://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/api/${this.baseURL}/${query}`,
-      { ...authHeaders(token) },
     )
   }
 
-  async updateList(url: string, token: string) {
-    return axios.get(url, authHeaders(token))
+  async updateList(url: string) {
+    return axios.get(url)
   }
 
-  async getItemData(token: string, itemId: number) {
+  async getItemData(itemId: number) {
     return axios.get(
       `${process.env.REACT_APP_BACKEND_PROTOCOL}://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/api/${this.baseURL}/${itemId}/`,
-      authHeaders(token),
     )
   }
 
@@ -72,4 +62,8 @@ class userAPI {
   // }
 }
 
-export const userAPIInstance = new userAPI("users", {}, {})
+export const userAPIInstance = new userAPI(
+  "users",
+  { username: "levenko", last_name: "" },
+  {},
+)

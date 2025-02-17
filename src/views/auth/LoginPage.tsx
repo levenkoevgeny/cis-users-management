@@ -13,8 +13,8 @@ export default function LoginPage() {
     username: string
     password: string
   }>({
-    username: "",
-    password: "",
+    username: "levenko",
+    password: "1986",
   })
 
   const dispatch = useAppDispatch()

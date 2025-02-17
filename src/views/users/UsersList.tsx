@@ -1,36 +1,50 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import { userAPIInstance } from "../../api/userAPI"
-import { UserTypeItem } from "../../types/userType"
+import { userSearchForm, UserTypeItem } from "../../types/userType"
 import { useAppSelector } from "../../app/hooks"
-import { authToken, isLogInError } from "../../features/auth/authSlice"
+import debounce from "lodash.debounce"
 
-function SearchForm() {
+type handlerFunction = (event: any) => void
+
+function SearchForm(props: {
+  input: userSearchForm
+  handleSearchFormInput: handlerFunction
+}) {
   return (
     <div className="shadow p-3 mb-5 bg-body-tertiary rounded">
       <div className="row">
         <div className="col-lg-6">
           <div className="mb-3">
-            <label htmlFor="exampleInputEmail1" className="form-label">
+            {props.input.username}
+            <label htmlFor="id_username" className="form-label">
               Имя пользователя
             </label>
             <input
               type="text"
+              name="username"
+              value={props.input.username}
+              onChange={(event) => {
+                props.handleSearchFormInput(event)
+              }}
               className="form-control"
-              id="exampleInputEmail1"
-              aria-describedby="emailHelp"
+              id="id_username"
             />
           </div>
         </div>
         <div className="col-lg-6">
           <div className="mb-3">
-            <label htmlFor="exampleInputEmail1" className="form-label">
+            <label htmlFor="id_last_name" className="form-label">
               Фамилия
             </label>
             <input
               type="text"
+              value={props.input.last_name}
+              onChange={(event) => {
+                props.handleSearchFormInput(event)
+              }}
               className="form-control"
-              id="exampleInputEmail1"
-              aria-describedby="emailHelp"
+              name="last_name"
+              id="id_last_name"
             />
           </div>
         </div>
@@ -59,16 +73,30 @@ export default function UsersList() {
   })
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
-  const authTokenState = useAppSelector(authToken)
+  const [searchForm, setSearchForm] = useState<userSearchForm>(
+    Object.assign({}, userAPIInstance.searchObj as userSearchForm),
+  )
 
   useEffect(() => {
-    if (authTokenState) {
-      userAPIInstance
-        .getItemsList(authTokenState)
-        .then((response) => setUserList(response.data))
-        .catch(() => setIsError(true))
-        .finally(() => setIsLoading(false))
+    userAPIInstance
+      .getItemsList()
+      .then((response) => setUserList(response.data))
+      .catch(() => setIsError(true))
+      .finally(() => setIsLoading(false))
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      debouncedResults.cancel()
     }
+  })
+
+  function handleSearchFormInput(event: any) {
+    setSearchForm({ ...searchForm, [event.target.name]: event.target.value })
+  }
+
+  const debouncedResults = useMemo(() => {
+    return debounce(handleSearchFormInput, 300)
   }, [])
 
   return (
@@ -81,7 +109,11 @@ export default function UsersList() {
         <></>
       )}
       <h1 className="mt-3">Пользователи</h1>
-      <SearchForm />
+      <SearchForm
+        input={searchForm}
+        handleSearchFormInput={handleSearchFormInput}
+      />
+
       <div className="my-5"></div>
       <div className="d-flex justify-content-end align-items-center mb-3">
         <button type="button" className="btn btn-warning">
