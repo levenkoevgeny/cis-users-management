@@ -1,56 +1,124 @@
-import React, { useEffect, useState, useMemo } from "react"
+import React, { useEffect, useState } from "react"
 import { userAPIInstance } from "../../api/userAPI"
 import { userSearchForm, UserTypeItem } from "../../types/userType"
-import { useAppSelector } from "../../app/hooks"
 import debounce from "lodash.debounce"
+import { Modal } from "react-bootstrap"
+import { handlerFunction } from "../../types/userType"
 
-type handlerFunction = (event: any) => void
+import UserForm from "./UserForm"
+import { UserTypeCreate } from "../../types/userType"
 
 function SearchForm(props: {
   input: userSearchForm
   handleSearchFormInput: handlerFunction
+  clearForm: handlerFunction
 }) {
   return (
     <div className="shadow p-3 mb-5 bg-body-tertiary rounded">
       <div className="row">
         <div className="col-lg-6">
           <div className="mb-3">
-            {props.input.username}
-            <label htmlFor="id_username" className="form-label">
+            <label htmlFor="id_search_username" className="form-label">
               Имя пользователя
             </label>
             <input
               type="text"
-              name="username"
-              value={props.input.username}
+              name="username__icontains"
+              value={props.input.username__icontains}
               onChange={(event) => {
                 props.handleSearchFormInput(event)
               }}
               className="form-control"
-              id="id_username"
+              id="id_search_username"
             />
           </div>
         </div>
         <div className="col-lg-6">
           <div className="mb-3">
-            <label htmlFor="id_last_name" className="form-label">
+            <label htmlFor="id_search_last_name" className="form-label">
               Фамилия
             </label>
             <input
               type="text"
-              value={props.input.last_name}
+              value={props.input.last_name__icontains}
               onChange={(event) => {
                 props.handleSearchFormInput(event)
               }}
               className="form-control"
-              name="last_name"
-              id="id_last_name"
+              name="last_name__icontains"
+              id="id_search_last_name"
             />
           </div>
         </div>
       </div>
+      <div className="row">
+        <div className="col-lg-4">
+          <div className="mb-3">
+            <label htmlFor="id_search_is_active" className="form-label">
+              Активный
+            </label>
 
-      <button type="button" className="btn btn-primary">
+            <select
+              id="id_search_is_active"
+              name="is_active"
+              className="form-select"
+              value={props.input.is_active}
+              onChange={(event) => {
+                props.handleSearchFormInput(event)
+              }}
+            >
+              <option value="">----</option>
+              <option value="1">Да</option>
+              <option value="0">Нет</option>
+            </select>
+          </div>
+        </div>
+        <div className="col-lg-4">
+          <div className="mb-3">
+            <label htmlFor="id_search_is_staff" className="form-label">
+              Персонал
+            </label>
+            <select
+              id="id_search_is_staff"
+              name="is_staff"
+              className="form-select"
+              value={props.input.is_staff}
+              onChange={(event) => {
+                props.handleSearchFormInput(event)
+              }}
+            >
+              <option value="">----</option>
+              <option value="1">Да</option>
+              <option value="0">Нет</option>
+            </select>
+          </div>
+        </div>
+        <div className="col-lg-4">
+          <div className="mb-3">
+            <label htmlFor="id_search_username" className="form-label">
+              Суперпользователь
+            </label>
+            <select
+              id="id_search_username"
+              name="is_superuser"
+              className="form-select"
+              value={props.input.is_superuser}
+              onChange={(event) => {
+                props.handleSearchFormInput(event)
+              }}
+            >
+              <option value="">----</option>
+              <option value="1">Да</option>
+              <option value="0">Нет</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <button
+        type="button"
+        className="btn btn-primary"
+        onClick={props.clearForm}
+      >
         Очистить форму
       </button>
     </div>
@@ -76,6 +144,10 @@ export default function UsersList() {
   const [searchForm, setSearchForm] = useState<userSearchForm>(
     Object.assign({}, userAPIInstance.searchObj as userSearchForm),
   )
+  const [show, setShow] = useState(false)
+
+  const handleClose = () => setShow(false)
+  const handleShow = () => setShow(true)
 
   useEffect(() => {
     userAPIInstance
@@ -86,21 +158,45 @@ export default function UsersList() {
   }, [])
 
   useEffect(() => {
-    return () => {
-      debouncedResults.cancel()
-    }
-  })
+    userAPIInstance.searchObj = searchForm
+    debounce(() => {
+      userAPIInstance
+        .getItemsList()
+        .then((response) => setUserList(response.data))
+    }, 500)()
+  }, [searchForm])
 
   function handleSearchFormInput(event: any) {
     setSearchForm({ ...searchForm, [event.target.name]: event.target.value })
   }
 
-  const debouncedResults = useMemo(() => {
-    return debounce(handleSearchFormInput, 300)
-  }, [])
+  function clearForm() {
+    setSearchForm(
+      Object.assign({}, userAPIInstance.searchObjDefault as userSearchForm),
+    )
+  }
+
+  async function createUserHandler(userData: UserTypeCreate) {
+    const response = await userAPIInstance.createNewUser(userData)
+    console.log("response", response.data)
+    setUserList({ ...userList, results: [...userList.results, response.data] })
+  }
 
   return (
     <div>
+      <Modal show={show} onHide={handleClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Новая запись</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <UserForm
+            handleClose={handleClose}
+            createUserHandler={createUserHandler}
+          />
+        </Modal.Body>
+        <Modal.Footer></Modal.Footer>
+      </Modal>
+
       {isError ? (
         <div className="alert alert-danger" role="alert">
           Error!
@@ -112,13 +208,18 @@ export default function UsersList() {
       <SearchForm
         input={searchForm}
         handleSearchFormInput={handleSearchFormInput}
+        clearForm={clearForm}
       />
 
       <div className="my-5"></div>
       <div className="d-flex justify-content-end align-items-center mb-3">
-        <button type="button" className="btn btn-warning">
+        <button type="button" className="btn btn-warning" onClick={handleShow}>
           Добавить пользователя
         </button>
+      </div>
+
+      <div className="mb-3">
+        <h5>Всего записей - {userList.count}</h5>
       </div>
 
       {isLoading ? (
@@ -129,15 +230,31 @@ export default function UsersList() {
             <table className="table">
               <thead>
                 <tr>
-                  <th scope="col">Аватар</th>
-                  <th scope="col">id</th>
-                  <th scope="col">Активный</th>
-                  <th scope="col">Имя пользователя</th>
-                  <th scope="col">Фамилия</th>
-                  <th scope="col">Имя</th>
-                  <th scope="col">Супер пользователь</th>
-                  <th scope="col">Дата и время создания</th>
-                  <th scope="col"></th>
+                  <th scope="col" key="avatar">
+                    Аватар
+                  </th>
+                  <th scope="col" key="id">
+                    id
+                  </th>
+                  <th scope="col" key="is_active">
+                    Активный
+                  </th>
+                  <th scope="col" key="username">
+                    Имя пользователя
+                  </th>
+                  <th scope="col" key="lastname">
+                    Фамилия
+                  </th>
+                  <th scope="col" key="firstname">
+                    Имя
+                  </th>
+                  <th scope="col" key="is_superuser">
+                    Супер пользователь
+                  </th>
+                  <th scope="col" key="date_time_created">
+                    Дата и время создания
+                  </th>
+                  <th scope="col" key="empty"></th>
                 </tr>
               </thead>
               <tbody>
@@ -145,12 +262,20 @@ export default function UsersList() {
                   <tr key={user.id}>
                     <td></td>
                     <td>{user.id}</td>
-                    {user.is_active ? <td>true</td> : <td></td>}
+                    {user.is_active ? <td>Да</td> : <td>Нет</td>}
                     <td>{user.username}</td>
                     <td>{user.last_name}</td>
                     <td>{user.first_name}</td>
-                    {user.is_superuser ? <td>true</td> : <td></td>}
-                    <td>{user.date_joined}</td>
+                    {user.is_superuser ? <td>Да</td> : <td>Нет</td>}
+                    <td>
+                      {user.date_joined
+                        ? new Date(user.date_joined).toLocaleString("ru-RU", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : "Нет данных"}
+                    </td>
                     <td></td>
                   </tr>
                 ))}

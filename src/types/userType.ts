@@ -15,6 +15,11 @@ export interface UserTypeItem extends UserTypeBase {
 
 export interface UserTypeCreate extends UserTypeBase {
   password: string
+  last_name?: string
+  first_name?: string
+  is_active?: boolean
+  is_staff?: boolean
+  is_superuser?: boolean
 }
 
 export interface UserTypeUpdate extends UserTypeBase {
@@ -31,6 +36,13 @@ export interface UserTypeUpdatePassword extends UserTypeBase {
 }
 
 export interface userSearchForm {
-  username: string
-  last_name: string
+  username__icontains: string
+  last_name__icontains: string
+  is_staff: number | string
+  is_active: number | string
+  is_superuser: number | string
 }
+
+export type handlerFunction = (event: any) => void
+
+export type handlerFunctionWithPromise = (event: any) => any

@@ -1,5 +1,5 @@
 import { axiosInstance as axios } from "../index"
-import { UserTypeCreate, userSearchForm } from "../types/userType"
+import { UserTypeCreate, userSearchForm, UserTypeItem } from "../types/userType"
 
 class userAPI {
   baseURL: string
@@ -38,6 +38,22 @@ class userAPI {
     )
   }
 
+  async createNewUser(newUserForm: UserTypeCreate) {
+    const params = new URLSearchParams()
+    params.append("username", newUserForm.username)
+    params.append("password", newUserForm.password)
+    if (newUserForm.last_name) {
+      params.append("last_name", newUserForm.last_name)
+    }
+    if (newUserForm.first_name) {
+      params.append("first_name", newUserForm.first_name)
+    }
+    console.log("params", params)
+    return axios.post<{ data: UserTypeItem }, { data: UserTypeItem }>(
+      `${process.env.REACT_APP_BACKEND_PROTOCOL}://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/api/${this.baseURL}/`,
+      params,
+    )
+  }
   // async addItem(token: string, itemData: object) {
   //   return axios.post(
   //     `${process.env.VUE_APP_BACKEND_PROTOCOL}://${process.env.VUE_APP_BACKEND_HOST}:${process.env.VUE_APP_BACKEND_PORT}/api/${this.baseURL}/`,
@@ -64,6 +80,12 @@ class userAPI {
 
 export const userAPIInstance = new userAPI(
   "users",
-  { username: "levenko", last_name: "" },
+  {
+    username__icontains: "",
+    last_name__icontains: "",
+    is_staff: "",
+    is_active: "",
+    is_superuser: "",
+  },
   {},
 )
