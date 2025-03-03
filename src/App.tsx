@@ -1,4 +1,3 @@
-import "./App.css"
 import { createBrowserRouter, RouterProvider, redirect } from "react-router"
 import Layout from "./components/Layout"
 import UsersList from "./views/users/UsersList"

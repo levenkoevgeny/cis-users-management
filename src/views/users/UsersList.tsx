@@ -1,12 +1,17 @@
 import React, { useEffect, useState } from "react"
 import { userAPIInstance } from "../../api/userAPI"
-import { userSearchForm, UserTypeItem } from "../../types/userType"
+import {
+  userSearchForm,
+  UserTypeItem,
+  UserTypeCreate,
+  UserTypeUpdate,
+} from "../../types/userType"
 import debounce from "lodash.debounce"
 import { Modal } from "react-bootstrap"
 import { handlerFunction } from "../../types/userType"
 
 import UserForm from "./UserForm"
-import { UserTypeCreate } from "../../types/userType"
+import UserFormUpdate from "./UserFormUpdate"
 
 function SearchForm(props: {
   input: userSearchForm
@@ -139,15 +144,29 @@ export default function UsersList() {
     previous: null,
     results: [],
   })
+  const [currentUSerForUpdate, setCurrentUSerForUpdate] =
+    useState<UserTypeUpdate>({
+      id: 10000000000,
+      username: "",
+      last_name: "",
+      first_name: "",
+      is_active: false,
+      is_staff: false,
+      is_superuser: false,
+    })
   const [isLoading, setIsLoading] = useState(true)
   const [isError, setIsError] = useState(false)
   const [searchForm, setSearchForm] = useState<userSearchForm>(
     Object.assign({}, userAPIInstance.searchObj as userSearchForm),
   )
   const [show, setShow] = useState(false)
+  const [showForUpdate, setShowForUpdate] = useState(false)
 
   const handleClose = () => setShow(false)
   const handleShow = () => setShow(true)
+
+  const handleCloseForUpdate = () => setShowForUpdate(false)
+  const handleShowForUpdate = () => setShowForUpdate(true)
 
   useEffect(() => {
     userAPIInstance
@@ -178,12 +197,47 @@ export default function UsersList() {
 
   async function createUserHandler(userData: UserTypeCreate) {
     const response = await userAPIInstance.createNewUser(userData)
-    console.log("response", response.data)
     setUserList({ ...userList, results: [...userList.results, response.data] })
+    handleClose()
+  }
+
+  async function getUserForUpdate(userId: number) {
+    const response = await userAPIInstance.getItemData(userId)
+
+    let userForUpdate = response.data
+    const { avatar, ...restOfUser } = userForUpdate
+    setCurrentUSerForUpdate(restOfUser)
+
+    handleShowForUpdate()
+  }
+
+  async function updateUserHandler(userForUpdate: UserTypeUpdate) {
+    const response = await userAPIInstance.updateItem(userForUpdate)
+    const updatedList = userList.results.map((user) => {
+      if (user.id === userForUpdate.id) {
+        return { ...user, ...response.data }
+      } else return user
+    })
+    setUserList({ ...userList, results: [...updatedList] })
+    handleCloseForUpdate()
   }
 
   return (
     <div>
+      <Modal show={showForUpdate} onHide={handleCloseForUpdate}>
+        <Modal.Header closeButton>
+          <Modal.Title>Редактирование записи</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <UserFormUpdate
+            handleClose={handleCloseForUpdate}
+            updateUserHandler={updateUserHandler}
+            initValues={currentUSerForUpdate}
+          />
+        </Modal.Body>
+        <Modal.Footer></Modal.Footer>
+      </Modal>
+
       <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton>
           <Modal.Title>Новая запись</Modal.Title>
@@ -227,7 +281,7 @@ export default function UsersList() {
       ) : (
         <div>
           {userList.results.length ? (
-            <table className="table">
+            <table className="table table-hover">
               <thead>
                 <tr>
                   <th scope="col" key="avatar">
@@ -259,8 +313,26 @@ export default function UsersList() {
               </thead>
               <tbody>
                 {userList.results.map((user) => (
-                  <tr key={user.id}>
-                    <td></td>
+                  <tr
+                    key={user.id}
+                    onDoubleClick={() => getUserForUpdate(user.id)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <td>
+                      {user.avatar ? (
+                        <img
+                          src={user.avatar}
+                          alt=""
+                          style={{
+                            borderRadius: "50%",
+                            width: "50px",
+                            height: "50px",
+                          }}
+                        />
+                      ) : (
+                        <></>
+                      )}
+                    </td>
                     <td>{user.id}</td>
                     {user.is_active ? <td>Да</td> : <td>Нет</td>}
                     <td>{user.username}</td>

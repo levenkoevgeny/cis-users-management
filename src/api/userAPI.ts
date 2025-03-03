@@ -1,5 +1,10 @@
 import { axiosInstance as axios } from "../index"
-import { UserTypeCreate, userSearchForm, UserTypeItem } from "../types/userType"
+import {
+  UserTypeCreate,
+  userSearchForm,
+  UserTypeItem,
+  UserTypeUpdate,
+} from "../types/userType"
 
 class userAPI {
   baseURL: string
@@ -33,7 +38,13 @@ class userAPI {
   }
 
   async getItemData(itemId: number) {
-    return axios.get(
+    return axios.get<{ data: UserTypeItem }, { data: UserTypeItem }>(
+      `${process.env.REACT_APP_BACKEND_PROTOCOL}://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/api/${this.baseURL}/${itemId}/`,
+    )
+  }
+
+  async getItemDataForUpdate(itemId: number) {
+    return axios.get<{ data: UserTypeUpdate }, { data: UserTypeUpdate }>(
       `${process.env.REACT_APP_BACKEND_PROTOCOL}://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/api/${this.baseURL}/${itemId}/`,
     )
   }
@@ -48,34 +59,24 @@ class userAPI {
     if (newUserForm.first_name) {
       params.append("first_name", newUserForm.first_name)
     }
-    console.log("params", params)
     return axios.post<{ data: UserTypeItem }, { data: UserTypeItem }>(
       `${process.env.REACT_APP_BACKEND_PROTOCOL}://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/api/${this.baseURL}/`,
       params,
     )
   }
-  // async addItem(token: string, itemData: object) {
-  //   return axios.post(
-  //     `${process.env.VUE_APP_BACKEND_PROTOCOL}://${process.env.VUE_APP_BACKEND_HOST}:${process.env.VUE_APP_BACKEND_PORT}/api/${this.baseURL}/`,
-  //     itemData,
-  //     authHeaders(token),
-  //   )
-  // }
-  //
-  // async updateItem(token: string, itemData: { id: string }) {
-  //   return axios.put(
-  //     `${process.env.VUE_APP_BACKEND_PROTOCOL}://${process.env.VUE_APP_BACKEND_HOST}:${process.env.VUE_APP_BACKEND_PORT}/api/${this.baseURL}/${itemData.id}/`,
-  //     itemData,
-  //     authHeaders(token),
-  //   )
-  // }
-  //
-  // async deleteItem(token: string, itemId: string) {
-  //   return axios.delete(
-  //     `${process.env.VUE_APP_BACKEND_PROTOCOL}://${process.env.VUE_APP_BACKEND_HOST}:${process.env.VUE_APP_BACKEND_PORT}/api/${this.baseURL}/${itemId}/`,
-  //     authHeaders(token),
-  //   )
-  // }
+
+  async updateItem(itemData: UserTypeUpdate) {
+    return axios.patch<{ data: UserTypeItem }, { data: UserTypeItem }>(
+      `${process.env.REACT_APP_BACKEND_PROTOCOL}://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/api/${this.baseURL}/${itemData.id}/`,
+      itemData,
+    )
+  }
+
+  async deleteItem(itemId: string) {
+    return axios.delete(
+      `${process.env.REACT_APP_BACKEND_PROTOCOL}://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}/api/${this.baseURL}/${itemId}/`,
+    )
+  }
 }
 
 export const userAPIInstance = new userAPI(
